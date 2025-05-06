@@ -1,9 +1,22 @@
 import pandas as pd
 import numpy as np
+import os
 
 # Load data function
 def load_data():
-    historical_data = pd.read_csv('data/charlottesville_historical_data.csv')
+    """Load historical data from CSV file with proper path handling."""
+    # Get the directory where the current script is located
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Go up one level to the streamlit directory, then to the data directory
+    # Assuming this script is in a subdirectory of the streamlit directory
+    parent_dir = os.path.dirname(current_dir)
+    
+    # Construct the path to the data file
+    data_path = os.path.join(parent_dir, 'data', 'charlottesville_historical_data.csv')
+    
+    # Load the data
+    historical_data = pd.read_csv(data_path)
     
     # Convert timestamp columns to datetime
     historical_data['timestamp'] = pd.to_datetime(historical_data['timestamp'])
