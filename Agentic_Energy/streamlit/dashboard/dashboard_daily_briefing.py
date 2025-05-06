@@ -12,9 +12,15 @@ if 'data_initialized' not in st.session_state:
 
 def load_data_from_csv():
     """Load historical and forecast data directly from CSV files"""
-    data_dir = "../data"
-    historical_file = os.path.join(data_dir, "charlottesville_historical_data.csv")
-    forecast_file = os.path.join(data_dir, "charlottesville_weather_forecast.csv")
+    # Get the directory where the current script is located
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Go up one level to the streamlit directory, then to the data directory
+    data_dir = os.path.dirname(current_dir)
+    
+    # Define file paths
+    historical_file = os.path.join(data_dir, "data", "charlottesville_historical_data.csv")
+    forecast_file = os.path.join(data_dir, "data", "charlottesville_weather_forecast.csv")
     
     # Check if files exist
     if not os.path.exists(historical_file):
