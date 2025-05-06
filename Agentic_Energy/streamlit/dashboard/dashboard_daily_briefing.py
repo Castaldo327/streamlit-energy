@@ -5,66 +5,32 @@ import plotly.express as px
 import numpy as np
 import pandas as pd
 import os
+import sys
 
-# Initialize session state for data
-if 'data_initialized' not in st.session_state:
-    st.session_state.data_initialized = False
-
-def load_data_from_csv():
-    """Load historical and forecast data directly from CSV files"""
-    # Get the directory where the current script is located
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Go up one level to the streamlit directory, then to the data directory
-    data_dir = os.path.dirname(current_dir)
-    
-    # Define file paths
-    historical_file = os.path.join(data_dir, "data", "charlottesville_historical_data.csv")
-    forecast_file = os.path.join(data_dir, "data", "charlottesville_weather_forecast.csv")
-    
-    # Check if files exist
-    if not os.path.exists(historical_file):
-        st.error(f"Historical data file not found at {historical_file}. Please generate the data first.")
-        return None, None
-    
-    if not os.path.exists(forecast_file):
-        st.warning(f"Forecast data file not found at {forecast_file}. Only historical data will be available.")
-        forecast_data = pd.DataFrame()
-    else:
-        # Load forecast data
-        forecast_data = pd.read_csv(forecast_file)
-        forecast_data['timestamp'] = pd.to_datetime(forecast_data['timestamp'])
-    
-    # Load historical data
-    historical_data = pd.read_csv(historical_file)
-    historical_data['timestamp'] = pd.to_datetime(historical_data['timestamp'])
-    
-    return historical_data, forecast_data
-
-def initialize_data():
-    """Initialize or refresh the data in the session state"""
-    if not st.session_state.data_initialized:
-        # First load
-        st.session_state.cville_data, st.session_state.forecast_data = load_data_from_csv()
-        st.session_state.data_initialized = True
-        st.session_state.last_update = datetime.now()
-    else:
-        # Check if it's time to refresh data (e.g., every hour)
-        time_since_update = datetime.now() - st.session_state.last_update
-        if time_since_update > timedelta(hours=1):
-            st.session_state.cville_data, st.session_state.forecast_data = load_data_from_csv()
-            st.session_state.last_update = datetime.now()
+# Import the data generation functions
+from data.generate_data import generate_charlottesville_data, generate_weather_forecast
 
 def dashboard_daily_briefing():
     st.subheader("Today's Energy Overview for Charlottesville")
 
-    # Initialize data by reading directly from CSV files
-    initialize_data()
+    # Add a refresh button
+    if st.button("Refresh Data"):
+        st.session_state.data_initialized = False
+        st.experimental_rerun()
     
-    # Check if data was loaded successfully
-    if st.session_state.cville_data is None:
-        st.error("Failed to load data. Please make sure the data files exist.")
-        return
+    # Generate fresh data every time
+    with st.spinner("Generating fresh data..."):
+        # Generate historical data (using fewer days for performance)
+        historical_data = generate_charlottesville_data(days=30)  # 30 days of data for better performance
+        
+        # Generate weather forecast data
+        forecast_data = generate_weather_forecast(forecast_days=10)
+        
+        # Store in session state
+        st.session_state.cville_data = historical_data
+        st.session_state.forecast_data = forecast_data
+        st.session_state.data_initialized = True
+        st.session_state.last_update = datetime.now()
     
     # Get today's data
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -204,6 +170,6 @@ def dashboard_daily_briefing():
         elif current_temp < 40:
             st.warning("• Cold temperatures may drive morning and evening peak prices")
 
-# For testing the dashboard function directly
-if __name__ == "__main__":
-    dashboard_daily_briefing()
+    # Add a note about data generation
+    st.markdown("---")
+    st.info("Note: This dashboard uses synthetic data generated on-the-fly. Each refresh produces new data.")
