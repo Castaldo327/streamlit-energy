@@ -13,8 +13,8 @@ if 'data_initialized' not in st.session_state:
 def load_data_from_csv():
     """Load historical and forecast data directly from CSV files"""
     data_dir = "data"
-    historical_file = os.path.join(data_dir, "charlottesville_historical_data.csv")
-    forecast_file = os.path.join(data_dir, "charlottesville_weather_forecast.csv")
+    historical_file = os.path.join(data_dir, "../charlottesville_historical_data.csv")
+    forecast_file = os.path.join(data_dir, "../charlottesville_weather_forecast.csv")
     
     # Check if files exist
     if not os.path.exists(historical_file):
